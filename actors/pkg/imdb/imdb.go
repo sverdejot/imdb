@@ -16,30 +16,30 @@ import (
 )
 
 func parseYear(s string) int {
-	if (s == "\\N") {
+	if s == "\\N" {
 		return 0
 	}
 	y, _ := strconv.Atoi(s)
 	return y
 }
 
-func ParseCsv(r io.Reader) (actors []domain.Actor, err error)  {
+func ParseCsv(r io.Reader) (actors []domain.Actor, err error) {
 	buffer := bufio.NewScanner(r)
 	// discard header
 	buffer.Scan()
 
 	for buffer.Scan() {
-		bLine := buffer.Text();
+		bLine := buffer.Text()
 		line := strings.Split(string(bLine), "\t")
 
 		id, err := strconv.Atoi(line[0][2:])
-		if err !=  nil {
-			return actors, err 
+		if err != nil {
+			return actors, err
 		}
 
 		actors = append(actors, domain.Actor{
-			Id: id,
-			Name: line[1],
+			Id:        id,
+			Name:      line[1],
 			BirthYear: parseYear(line[2]),
 			DeathYear: parseYear(line[3]),
 		})
@@ -48,28 +48,28 @@ func ParseCsv(r io.Reader) (actors []domain.Actor, err error)  {
 }
 
 func Import(path, connectionString string) {
-		f, err := os.Open(path)
-		if err != nil {
-			log.Fatalf("error opening file: %v", err)
-		}
-		defer f.Close()
+	f, err := os.Open(path)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
 
-		db, err := sql.Open("postgres", connectionString)
-		if err != nil {
-			log.Fatalf("error connecting to database: %v", err)
-		}
-		defer db.Close()
+	db, err := sql.Open("postgres", connectionString)
+	if err != nil {
+		log.Fatalf("error connecting to database: %v", err)
+	}
+	defer db.Close()
 
-		actors, err := ParseCsv(f)
-		if err !=  nil {
-			log.Println(fmt.Sprintf("error parsing actors (got %d): %v", len(actors), err))
-		}
+	actors, err := ParseCsv(f)
+	if err != nil {
+		log.Println(fmt.Sprintf("error parsing actors (got %d): %v", len(actors), err))
+	}
 
-		repo := storage.NewMysqlActorRepository(db)
+	repo := storage.NewMysqlActorRepository(db)
 
-		rows, err := repo.BulkInsert(actors)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println("total actors imported: ", rows)
+	rows, err := repo.BulkInsert(actors)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("total actors imported: ", rows)
 }

@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/sverdejot/imdb-micro/actors/internal/domain"
@@ -19,11 +20,11 @@ func NewMysqlActorRepository(db *sql.DB) *MysqlActorRepository {
 }
 
 func (r *MysqlActorRepository) BulkInsert(actors []domain.Actor) (int64, error) {
-	if (len(actors) == 0) {
+	if len(actors) == 0 {
 		return 0, nil
 	}
 	args := make([]string, 0, len(actors))
-	vals := make([]any, 0, len(actors) * 4)
+	vals := make([]any, 0, len(actors)*4)
 
 	for _, actor := range actors {
 		vals = append(vals, actor.Id)
@@ -48,8 +49,9 @@ func (r *MysqlActorRepository) BulkInsert(actors []domain.Actor) (int64, error) 
 	residualStmt, _ := r.db.Prepare(fmt.Sprintf("%s %s", bulkStmtStr, strings.Join(args[:residual_batch], ",")))
 
 	var total_imported int64
+	var lower_bound, upper_bound int
 	for i := range no_batches {
-		lower_bound, upper_bound := i*BATCH_SIZE*4, (i+1)*BATCH_SIZE*4
+		lower_bound, upper_bound = i*BATCH_SIZE*4, (i+1)*BATCH_SIZE*4
 		res, err := bulkStmt.Exec(vals[lower_bound:upper_bound]...)
 		if err != nil {
 			return total_imported, err
@@ -65,4 +67,22 @@ func (r *MysqlActorRepository) BulkInsert(actors []domain.Actor) (int64, error) 
 	rows_imported_in_residual_batch, _ := res.RowsAffected()
 
 	return total_imported + rows_imported_in_residual_batch, nil
+}
+
+func (r *MysqlActorRepository) Find(id int) (domain.Actor, bool) {
+	actor := domain.Actor{}
+
+	err := r.db.QueryRow(`SELECT id, name, birth_year, death_year FROM actors WHERE id=$1;`, id).Scan(
+		&actor.Id,
+		&actor.Name,
+		&actor.BirthYear,
+		&actor.DeathYear,
+	)
+
+	if err == sql.ErrNoRows {
+		log.Println("no rows")
+		return domain.Actor{}, false
+	}
+
+	return actor, true
 }

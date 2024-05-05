@@ -7,7 +7,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "imdb",
+	Use:   "imdb",
 	Short: "utilities to work with imdb datasets",
 
 	Run: func(cmd *cobra.Command, args []string) {
