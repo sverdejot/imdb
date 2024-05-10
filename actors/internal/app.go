@@ -3,8 +3,8 @@ package internal
 import (
 	"net/http"
 
-	"github.com/sverdejot/imdb-micro/actors/internal/application/usecases"
-	"github.com/sverdejot/imdb-micro/actors/internal/infrastructure/http/routes"
+	"github.com/sverdejot/imdb/actors/internal/application/usecases"
+	"github.com/sverdejot/imdb/actors/internal/infrastructure/http/routes"
 )
 
 type App struct {

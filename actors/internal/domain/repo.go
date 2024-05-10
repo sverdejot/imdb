@@ -1,6 +1,8 @@
 package domain
 
+import "context"
+
 type ActorRepository interface {
-	BulkInsert(actors []Actor) (int64, error)
-	Find(id int) (Actor, bool)
+	BulkInsert(ctx context.Context, actors []Actor) (int64, error)
+	Find(ctx context.Context, id int) (Actor, bool)
 }

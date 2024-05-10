@@ -5,6 +5,7 @@ type Actor struct {
 	Name      string
 	BirthYear int
 	DeathYear int
+	Titles		[]int
 }
 
 func NewActor(id int, name string, birth, death int) Actor {

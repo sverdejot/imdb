@@ -7,9 +7,9 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/sverdejot/imdb-micro/actors/internal"
-	"github.com/sverdejot/imdb-micro/actors/internal/application/usecases"
-	"github.com/sverdejot/imdb-micro/actors/internal/infrastructure/storage"
+	"github.com/sverdejot/imdb/actors/internal"
+	"github.com/sverdejot/imdb/actors/internal/application/usecases"
+	"github.com/sverdejot/imdb/actors/internal/infrastructure/storage"
 )
 
 func Run() {

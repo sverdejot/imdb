@@ -2,7 +2,7 @@ package imdb
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/sverdejot/imdb-micro/actors/pkg/imdb"
+	"github.com/sverdejot/imdb/actors/pkg/imdb"
 )
 
 var connectionString string

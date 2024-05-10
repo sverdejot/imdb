@@ -2,6 +2,7 @@ package imdb
 
 import (
 	"bufio"
+	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -11,8 +12,8 @@ import (
 	"strings"
 
 	_ "github.com/lib/pq"
-	"github.com/sverdejot/imdb-micro/actors/internal/domain"
-	"github.com/sverdejot/imdb-micro/actors/internal/infrastructure/storage"
+	"github.com/sverdejot/imdb/actors/internal/domain"
+	"github.com/sverdejot/imdb/actors/internal/infrastructure/storage"
 )
 
 func parseYear(s string) int {
@@ -21,6 +22,15 @@ func parseYear(s string) int {
 	}
 	y, _ := strconv.Atoi(s)
 	return y
+}
+
+func parseTitle(title string) (int, error) {
+	if title == "\\N" {
+		return 0, nil
+	}
+
+	id, err := strconv.Atoi(title[2:])
+	return id, err
 }
 
 func ParseCsv(r io.Reader) (actors []domain.Actor, err error) {
@@ -37,11 +47,25 @@ func ParseCsv(r io.Reader) (actors []domain.Actor, err error) {
 			return actors, err
 		}
 
+		titleIds := []int{}
+		for _, titleIdStr := range strings.Split(line[5], ",") {
+			id, err := parseTitle(titleIdStr)
+			if err != nil {
+				log.Println(fmt.Sprintf("cannot convert id: %s", titleIdStr))
+				continue
+			}
+
+			if id != 0 {
+				titleIds = append(titleIds, id)
+			}
+		}
+
 		actors = append(actors, domain.Actor{
 			Id:        id,
 			Name:      line[1],
 			BirthYear: parseYear(line[2]),
 			DeathYear: parseYear(line[3]),
+			Titles: 	 titleIds,
 		})
 	}
 	return actors, nil
@@ -67,7 +91,7 @@ func Import(path, connectionString string) {
 
 	repo := storage.NewMysqlActorRepository(db)
 
-	rows, err := repo.BulkInsert(actors)
+	rows, err := repo.BulkInsert(context.Background(), actors)
 	if err != nil {
 		log.Fatal(err)
 	}
